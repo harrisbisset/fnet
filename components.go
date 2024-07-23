@@ -19,13 +19,6 @@ type (
 		Err  Response
 	}
 
-	ComponentRenderError struct {
-		ComponentName string
-		ResponseErr
-		Error error
-		Log   *ComponentRenderError
-	}
-
 	ResponseErr int
 )
 
@@ -41,13 +34,6 @@ func (r ResponseErr) String() string {
 	case ErrorFail:
 		return "ErrorFail"
 	}
-}
-
-func (r *ComponentRenderError) New(cName string, rErr ResponseErr, err error) {
-	r.ComponentName = cName
-	r.ResponseErr = rErr
-	r.Error = err
-	r.Log = nil
 }
 
 func (c Component) Render(w http.ResponseWriter, req *http.Request) {
