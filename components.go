@@ -38,6 +38,12 @@ func (r ResponseErr) String() string {
 
 func (c Component) Render(w http.ResponseWriter, req *http.Request) {
 
+	//check if view assigned
+	if c.View == nil {
+		log.Printf("%s view not assigned", c.Name)
+		return
+	}
+
 	// try to render page
 	err := c.View.Render(req.Context(), w)
 	if err == nil {
@@ -45,6 +51,12 @@ func (c Component) Render(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	log.Printf("%s occured on %s: %s", RenderFail.String(), c.Name, err)
+
+	//check if error assigned
+	if c.Err == nil {
+		log.Printf("%s error not assigned", c.Name)
+		return
+	}
 
 	// try to render 404
 	err = c.Err.Render(req.Context(), w)
