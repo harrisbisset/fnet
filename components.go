@@ -30,9 +30,9 @@ const (
 func (r ResponseErr) String() string {
 	switch r {
 	default:
-		return "RenderFail"
+		return "Render Fail"
 	case ErrorFail:
-		return "ErrorFail"
+		return "Error Fail"
 	}
 }
 
@@ -40,7 +40,9 @@ func (c Component) Render(w http.ResponseWriter, req *http.Request) {
 
 	//check if view assigned
 	if c.View == nil {
-		log.Printf("%s view not assigned", c.Name)
+		err := fmt.Sprintf("%s view not assigned", c.Name)
+		log.Print(err)
+		http.Error(w, err, http.StatusInternalServerError)
 	} else {
 		// try to render page
 		err := c.View.Render(req.Context(), w)
@@ -53,20 +55,22 @@ func (c Component) Render(w http.ResponseWriter, req *http.Request) {
 
 	//check if error assigned
 	if c.Err == nil {
-		log.Printf("%s error not assigned", c.Name)
+		err := fmt.Sprintf("%s error not assigned", c.Name)
+		log.Print(err)
+		http.Error(w, err, http.StatusInternalServerError)
 	} else {
 		// try to render 404
 		err := c.Err.Render(req.Context(), w)
 		if err == nil {
-			log.Printf("404 Rendered %s", c.Name)
+			log.Printf("404 rendered for %s", c.Name)
 			return
 		}
 		log.Printf("%s occured on %s: %s", ErrorFail.String(), c.Name, err)
 	}
 }
 
-func HandleComponent(p Path, url string, com func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(fmt.Sprintf("%s %s", p.String(), url), com)
+func HandleComponent(p Path, url string, fn func(w http.ResponseWriter, r *http.Request)) {
+	http.HandleFunc(fmt.Sprintf("%s %s", p.String(), url), fn)
 }
 
 func Handle(p Path, url string, handler http.Handler) {

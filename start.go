@@ -3,6 +3,7 @@ package fnet
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,9 +12,19 @@ import (
 	"time"
 )
 
-func Start() {
+// provide nil if no cidr
+//
+// e.g. Start("8000", "0.0.0.0")
+// or Start("8000", nil)
+func Start(address string, cidr *string) {
+
+	// if non-local
+	if cidr != nil {
+		address = fmt.Sprintf("%s:%s", *cidr, address)
+	}
+
 	server := &http.Server{
-		Addr: ":8080",
+		Addr: address,
 	}
 
 	go func() {
