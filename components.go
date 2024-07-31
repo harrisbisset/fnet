@@ -40,9 +40,10 @@ func (r ResponseErr) String() string {
 	}
 }
 
-func (c Component) View(v Response) bool {
+func (c *Component) View(v Response) bool {
 	switch r := Ok(v); r.Outer {
 	default:
+		c.view = v
 		return true
 	case None:
 		log.Print("view cannot be set to a nil value")
@@ -50,12 +51,13 @@ func (c Component) View(v Response) bool {
 	}
 }
 
-func (c Component) Error(e Response) bool {
+func (c *Component) Error(e Response) bool {
 	switch r := Ok(e); r.Outer {
 	default:
+		c.err = e
 		return true
 	case None:
-		log.Print("view cannot be set to a nil value")
+		log.Print("error cannot be set to a nil value")
 		return false
 	}
 }
