@@ -19,6 +19,10 @@ type (
 		err  Response
 	}
 
+	ComponentBuilder struct {
+		c Component
+	}
+
 	ResponseErr int
 )
 
@@ -99,10 +103,20 @@ func (c Component) RenderError(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func HandleComponent(p Path, url string, fn func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(fmt.Sprintf("%s %s", p.String(), url), fn)
+func NewComponent(name string) ComponentBuilder {
+	return ComponentBuilder{c: Component{name: name}}
 }
 
-func Handle(p Path, url string, handler http.Handler) {
-	http.Handle(fmt.Sprintf("%s %s", p.String(), url), handler)
+func (cb *ComponentBuilder) View(view Response) ComponentBuilder {
+	cb.c.view = view
+	return *cb
+}
+
+func (cb *ComponentBuilder) Error(err Response) ComponentBuilder {
+	cb.c.err = err
+	return *cb
+}
+
+func (cb ComponentBuilder) Build(view Response) Component {
+	return cb.c
 }
