@@ -103,20 +103,21 @@ func (c Component) RenderError(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func NewComponent(name string) ComponentBuilder {
-	return ComponentBuilder{c: Component{name: name}}
+func NewComponent(name string) *ComponentBuilder {
+	com := ComponentBuilder{c: Component{name: name}}
+	return &com
 }
 
-func (cb *ComponentBuilder) View(view Response) ComponentBuilder {
+func (cb *ComponentBuilder) View(view Response) *ComponentBuilder {
 	cb.c.view = view
-	return *cb
+	return cb
 }
 
-func (cb *ComponentBuilder) Error(err Response) ComponentBuilder {
+func (cb *ComponentBuilder) Error(err Response) *ComponentBuilder {
 	cb.c.err = err
-	return *cb
+	return cb
 }
 
-func (cb ComponentBuilder) Build(view Response) Component {
+func (cb *ComponentBuilder) Build(view Response) Component {
 	return cb.c
 }
