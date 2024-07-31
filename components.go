@@ -118,6 +118,6 @@ func (cb *ComponentBuilder) Error(err Response) *ComponentBuilder {
 	return cb
 }
 
-func (cb *ComponentBuilder) Build(view Response) Component {
+func (cb *ComponentBuilder) Build() Component {
 	return cb.c
 }
