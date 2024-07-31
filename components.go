@@ -14,9 +14,9 @@ type (
 	}
 
 	Component struct {
-		Name string
-		View Response
-		Err  Response
+		name string
+		view Response
+		err  Response
 	}
 
 	ResponseErr int
@@ -36,36 +36,66 @@ func (r ResponseErr) String() string {
 	}
 }
 
+func (c Component) View(v Response) bool {
+	switch r := Ok(v); r.Outer {
+	default:
+		return true
+	case None:
+		log.Print("view cannot be set to a nil value")
+		return false
+	}
+}
+
+func (c Component) Error(e Response) bool {
+	switch r := Ok(e); r.Outer {
+	default:
+		return true
+	case None:
+		log.Print("view cannot be set to a nil value")
+		return false
+	}
+}
+
 func (c Component) Render(w http.ResponseWriter, req *http.Request) {
 
 	//check if view assigned
-	if c.View == nil {
-		err := fmt.Sprintf("%s view not assigned", c.Name)
-		log.Print(err)
-		http.Error(w, err, http.StatusInternalServerError)
-	} else {
+	switch r := Ok(c.view); r.Outer {
+	default:
+
 		// try to render page
-		err := c.View.Render(req.Context(), w)
+		err := c.view.Render(req.Context(), w)
 		if err == nil {
-			log.Printf("Rendered %s", c.Name)
+			log.Printf("Rendered %s", c.name)
 			return
 		}
-		log.Printf("%s occured on %s: %s", RenderFail.String(), c.Name, err)
+		log.Printf("%s occured on %s: %s", RenderFail.String(), c.name, err)
+
+	case None:
+		err := fmt.Sprintf("%s view not assigned", c.name)
+		log.Print(err)
+		http.Error(w, err, http.StatusInternalServerError)
 	}
 
+	c.RenderError(w, req)
+}
+
+func (c Component) RenderError(w http.ResponseWriter, req *http.Request) {
 	//check if error assigned
-	if c.Err == nil {
-		err := fmt.Sprintf("%s error not assigned", c.Name)
-		log.Print(err)
-		http.Error(w, err, http.StatusInternalServerError)
-	} else {
+	switch r := Ok(c.err); r.Outer {
+	default:
+
 		// try to render 404
-		err := c.Err.Render(req.Context(), w)
+		err := c.err.Render(req.Context(), w)
 		if err == nil {
-			log.Printf("404 rendered for %s", c.Name)
+			log.Printf("404 rendered for %s", c.name)
 			return
 		}
-		log.Printf("%s occured on %s: %s", ErrorFail.String(), c.Name, err)
+		log.Printf("%s occured on %s: %s", ErrorFail.String(), c.name, err)
+
+	case None:
+		err := fmt.Sprintf("%s error not assigned", c.name)
+		log.Print(err)
+		http.Error(w, err, http.StatusInternalServerError)
 	}
 }
 
