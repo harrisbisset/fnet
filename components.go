@@ -33,10 +33,19 @@ const (
 
 func (r ResponseErr) String() string {
 	switch r {
-	default:
+	case RenderFail:
 		return "Render Fail"
-	case ErrorFail:
+	default:
 		return "Error Fail"
+	}
+}
+
+func (r ResponseErr) View() string {
+	switch r {
+	case RenderFail:
+		return "view"
+	default:
+		return "404"
 	}
 }
 
@@ -63,25 +72,13 @@ func (c *Component) Error(e Response) bool {
 }
 
 func (c Component) Render(w http.ResponseWriter, req *http.Request) {
-
 	//check if view assigned
 	switch r := Ok(c.view); r.Outer {
 	default:
-
-		// try to render page
-		err := c.view.Render(req.Context(), w)
-		if err == nil {
-			log.Printf("Rendered %s", c.name)
-			return
-		}
-		log.Printf("%s occured on %s: %s", RenderFail.String(), c.name, err)
-
+		tryView(c, RenderFail, req, w)
 	case None:
-		err := fmt.Sprintf("%s view not assigned", c.name)
-		log.Print(err)
-		http.Error(w, err, http.StatusInternalServerError)
+		unasssignedView(c.name, RenderFail, w)
 	}
-
 	c.RenderError(w, req)
 }
 
@@ -89,20 +86,29 @@ func (c Component) RenderError(w http.ResponseWriter, req *http.Request) {
 	//check if error assigned
 	switch r := Ok(c.err); r.Outer {
 	default:
-
-		// try to render 404
-		err := c.err.Render(req.Context(), w)
-		if err == nil {
-			log.Printf("404 rendered for %s", c.name)
-			return
-		}
-		log.Printf("%s occured on %s: %s", ErrorFail.String(), c.name, err)
-
+		tryView(c, ErrorFail, req, w)
 	case None:
-		err := fmt.Sprintf("%s error not assigned", c.name)
-		log.Print(err)
-		http.Error(w, err, http.StatusInternalServerError)
+		unasssignedView(c.name, ErrorFail, w)
 	}
+}
+
+func tryView(c Component, ty ResponseErr, req *http.Request, w http.ResponseWriter) {
+	// try to render 404
+	err := c.err.Render(req.Context(), w)
+	if err == nil {
+		if ty == ErrorFail {
+			log.Printf("%s rendered for %s", ty.View(), c.name)
+		}
+		return
+	}
+	log.Printf("%s occured on %s: %s", ty.String(), c.name, err)
+	http.Error(w, err.Error(), http.StatusInternalServerError)
+}
+
+func unasssignedView(componentName string, ty ResponseErr, w http.ResponseWriter) {
+	err := fmt.Sprintf("%s %s not assigned", componentName, ty.View())
+	log.Print(err)
+	http.Error(w, err, http.StatusInternalServerError)
 }
 
 func NewComponent(name string) *ComponentBuilder {
