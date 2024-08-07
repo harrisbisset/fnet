@@ -49,7 +49,8 @@ func (i *indexWrapper) Handle(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	fnet.HandleComponent(fnet.GET, "/", Handle)
+	db = ...
+	fnet.HandleComponent(fnet.GET, "/", IndexWrapper.DB(db).Handle)
 	fnet.Start("3000", "0.0.0.0")
 }
 ```
