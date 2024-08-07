@@ -1,6 +1,5 @@
 # Custom Library for using Templ
-```
-
+```go
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
 	Error(view_error_response.Page()).
