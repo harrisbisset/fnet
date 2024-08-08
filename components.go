@@ -94,7 +94,13 @@ func (c Component) RenderError(w http.ResponseWriter, req *http.Request) {
 
 func tryView(c Component, ty ResponseErr, req *http.Request, w http.ResponseWriter) {
 	// try to render 404
-	err := c.err.Render(req.Context(), w)
+	var err error
+	if ty == RenderFail {
+		err = c.view.Render(req.Context(), w)
+	} else {
+		err = c.err.Render(req.Context(), w)
+	}
+
 	if err == nil {
 		if ty == ErrorFail {
 			log.Printf("%s rendered for %s", ty.View(), c.name)
