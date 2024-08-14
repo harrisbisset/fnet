@@ -16,7 +16,7 @@ import (
 //
 // e.g. Start("8000", "0.0.0.0")
 // or Start("8000", nil)
-func Start(address string, cidr string) {
+func Start(address string, cidr string, mux http.Handler) {
 
 	// if non-local
 	if cidr != "" {
@@ -24,7 +24,8 @@ func Start(address string, cidr string) {
 	}
 
 	server := &http.Server{
-		Addr: address,
+		Addr:    address,
+		Handler: mux,
 	}
 
 	go func() {
