@@ -4,8 +4,8 @@ type (
 	OptionTypes int
 
 	ResultType[T any] struct {
-		Inner T
-		Outer OptionTypes
+		Value  T
+		Result OptionTypes
 	}
 )
 
@@ -24,5 +24,9 @@ func OptionMatch[T comparable](V T) OptionTypes {
 }
 
 func Ok[T comparable](V T) ResultType[T] {
-	return ResultType[T]{Inner: V, Outer: OptionMatch(V)}
+	return ResultType[T]{Value: V, Result: OptionMatch(V)}
+}
+
+func Present[T comparable](V T) bool {
+	return !(V == *new(T))
 }
