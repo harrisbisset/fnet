@@ -134,11 +134,11 @@ func (cb *ComponentBuilder) View(view Response) *ComponentBuilder {
 	return cb
 }
 
-func (cb *ComponentBuilder) Error(errorValue int, err Response) *ComponentBuilder {
+func (cb *ComponentBuilder) Error(errorValue int, rerr responseError) *ComponentBuilder {
 	if !Present(cb.c.errors[errorValue]) {
 		panic(fmt.Sprintf("reassigned %s error response, value: %d", cb.c.name, errorValue))
 	}
-	cb.c.errors[errorValue] = responseError{}
+	cb.c.errors[errorValue] = rerr
 	return cb
 }
 
@@ -147,4 +147,8 @@ func (cb *ComponentBuilder) Build() component {
 		panic(fmt.Sprintf("default error 0 not assigned to %s", cb.c.name))
 	}
 	return cb.c
+}
+
+func RespError(name string, err Response) responseError {
+	return responseError{name: name, response: err}
 }
