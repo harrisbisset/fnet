@@ -4,7 +4,7 @@
 ```go
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, RespError("build error", view_error.DefaultBuildError())).
+	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
 	Build()
 
 func Handler(w http.ResponseWriter, req *http.Request) {
@@ -29,7 +29,7 @@ type indexWrapper struct {
 
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, RespError("build error", view_error.DefaultBuildError())).
+	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
 	Build()
 
 var IndexWrapper indexWrapper = industryWrapper{
@@ -64,8 +64,8 @@ type indexWrapper struct {
 
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, RespError("build error", view_error.DefaultBuildError())).
-	Error(1, RespError("wrong user input", view_error.IndexUserError())).
+	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
+	Error(1, fnet.RespError("wrong user input", view_error.IndexUserError())).
 	Build()
 
 func Handler(w http.ResponseWriter, req *http.Request) {
