@@ -14,8 +14,8 @@ import (
 
 // provide nil if no cidr
 //
-// e.g. Start("8000", "0.0.0.0")
-// or Start("8000", nil)
+// e.g. Start("8000", "0.0.0.0", http.NewServeMux)
+// or Start("8000", "", nil)
 func Start(address string, cidr string, mux http.Handler) {
 
 	// if non-local
