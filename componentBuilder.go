@@ -30,11 +30,11 @@ func (cb *ComponentBuilder) View(view Response) *ComponentBuilder {
 	return cb
 }
 
-func (cb *ComponentBuilder) Error(errorValue int, rerr respErr) *ComponentBuilder {
+func (cb *ComponentBuilder) Error(errorValue int, rerr RErrBuilder) *ComponentBuilder {
 	if present(cb.c.errors[errorValue]) {
 		panic(fmt.Sprintf("reassigned %s error response, value: %d", cb.c.name, errorValue))
 	}
-	cb.c.errors[errorValue] = rerr
+	cb.c.errors[errorValue] = checkRErr(rerr)
 	return cb
 }
 
