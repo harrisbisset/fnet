@@ -6,9 +6,7 @@ import (
 )
 
 type (
-	ComponentBuilder struct {
-		c component
-	}
+	ComponentBuilder component
 
 	respErr struct {
 		name     string
@@ -17,41 +15,55 @@ type (
 		err      string
 	}
 
-	RErrBuilder respErr
+	respErrBuilder respErr
 )
 
 func NewComponent(name string) *ComponentBuilder {
-	com := ComponentBuilder{c: component{name: name, errors: make(responseErrors, 0)}}
+	com := ComponentBuilder{name: name, errors: make(responseErrors, 0)}
 	return &com
 }
 
 func (cb *ComponentBuilder) View(view Response) *ComponentBuilder {
-	cb.c.view = view
+	cb.view = view
 	return cb
 }
 
-func (cb *ComponentBuilder) Error(errorValue int, rerr RErrBuilder) *ComponentBuilder {
-	if present(cb.c.errors[errorValue]) {
-		panic(fmt.Sprintf("reassigned %s error response, value: %d", cb.c.name, errorValue))
+func (cb *ComponentBuilder) Error(errorValue int, rerr respErr) *ComponentBuilder {
+	if present(cb.errors[errorValue]) {
+		panic(fmt.Sprintf("reassigned %s error response, value: %d", cb.name, errorValue))
 	}
-	cb.c.errors[errorValue] = checkRErr(rerr)
+	cb.errors[errorValue] = rerr
 	return cb
 }
 
 func (cb *ComponentBuilder) Build() component {
-	if !present(cb.c.errors[0]) {
-		panic(fmt.Sprintf("default error 0 not assigned to %s", cb.c.name))
+	if !present(cb.errors[0]) {
+		panic(fmt.Sprintf("default error 0 not assigned to %s", cb.name))
 	}
-	return cb.c
+	return component(*cb)
 }
 
-func checkRErr(builder RErrBuilder) respErr {
-	panicField(builder.name)
-	panicField(builder.err)
-	panicField(builder.response)
+func NewError(name string, resp Response) *respErrBuilder {
+	return &respErrBuilder{name: name, response: resp}
+}
 
-	if !checkField(builder.code) {
-		builder.code = http.StatusInternalServerError
+func (r *respErrBuilder) Code(code int) *respErrBuilder {
+	r.code = code
+	return r
+}
+
+func (r *respErrBuilder) Error(err string) *respErrBuilder {
+	r.err = err
+	return r
+}
+
+func (r *respErrBuilder) Build() respErr {
+	panicField(r.name)
+	panicField(r.err)
+	panicField(r.response)
+
+	if !checkField(r.code) {
+		r.code = http.StatusInternalServerError
 	}
-	return respErr(builder)
+	return respErr(*r)
 }

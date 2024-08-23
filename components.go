@@ -31,8 +31,8 @@ func (c *component) View(v Response) bool {
 	return false
 }
 
-func (c *component) Error(errorValue int, rerr RErrBuilder) bool {
-	c.errors[errorValue] = checkRErr(rerr)
+func (c *component) Error(errorValue int, rerr respErr) bool {
+	c.errors[errorValue] = rerr
 	return true
 }
 
