@@ -44,10 +44,3 @@ func panicField[T comparable](field T) {
 		panic("field required")
 	}
 }
-
-func checkField[T comparable](field T) bool {
-	if !present(field) {
-		return false
-	}
-	return true
-}

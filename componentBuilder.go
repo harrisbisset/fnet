@@ -62,7 +62,7 @@ func (r *respErrBuilder) Build() respErr {
 	panicField(r.err)
 	panicField(r.response)
 
-	if !checkField(r.code) {
+	if !present(r.code) {
 		r.code = http.StatusInternalServerError
 	}
 	return respErr(*r)
