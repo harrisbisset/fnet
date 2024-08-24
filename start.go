@@ -24,8 +24,10 @@ func Start(address string, cidr string, mux http.Handler) {
 	}
 
 	server := &http.Server{
-		Addr:    address,
-		Handler: mux,
+		Addr: address,
+	}
+	if mux != nil {
+		server.Handler = mux
 	}
 
 	go func() {
