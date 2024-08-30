@@ -26,8 +26,8 @@ var (
 			Build()
 )
 
-func ShowIndexPage(w http.ResponseWriter, req *http.Request) {
-	IndexPage.Render(w, req)
+func ShowIndexPage(w http.ResponseWriter, req *http.Request) fnet.Result {
+	return IndexPage.Render(w, req)
 }
 
 func TestApplication(t *testing.T) {

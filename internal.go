@@ -13,27 +13,9 @@ const (
 	ErrorFail
 )
 
-func (r responseErr) View() string {
-	switch r {
-	default:
-		return "view"
-	case ErrorFail:
-		return "error"
-	}
-}
-
 //
 // internal functions below
 //
-
-func match[T comparable](V T) bool {
-	switch V {
-	default:
-		return true
-	case *new(T):
-		return false
-	}
-}
 
 func present[T comparable](V T) bool {
 	return !(V == *new(T))

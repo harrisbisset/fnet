@@ -6,37 +6,23 @@ import (
 )
 
 type (
-	Path int
+	Path string
 )
 
 const (
-	GET Path = iota
-	POST
-	UPDATE
-	DELETE
-	PUT
+	GET    Path = "GET"
+	POST   Path = "POST"
+	UPDATE Path = "UPDATE"
+	DELETE Path = "DELETE"
+	PUT    Path = "PUT"
 )
 
-func (p Path) String() string {
-	switch p {
-	// assume GET
-	default:
-		return "GET"
-	case 1:
-		return "POST"
-	case 2:
-		return "UPDATE"
-	case 3:
-		return "DELETE"
-	case 4:
-		return "PUT"
-	}
-}
-
-func HandleComponent(p Path, url string, fn func(w http.ResponseWriter, r *http.Request)) {
-	http.HandleFunc(fmt.Sprintf("%s %s", p.String(), url), fn)
+func HandleComponent(p Path, url string, fn func(w http.ResponseWriter, req *http.Request) Result) {
+	http.HandleFunc(fmt.Sprintf("%s %s", p, url), func(w http.ResponseWriter, r *http.Request) {
+		fn(w, r)
+	})
 }
 
 func Handle(p Path, url string, handler http.Handler) {
-	http.Handle(fmt.Sprintf("%s %s", p.String(), url), handler)
+	http.Handle(fmt.Sprintf("%s %s", p, url), handler)
 }

@@ -22,6 +22,8 @@ type (
 	}
 )
 
+type Result struct{}
+
 func (c *component) View(v Response) bool {
 	if present(v) {
 		c.view = v
@@ -32,53 +34,58 @@ func (c *component) View(v Response) bool {
 }
 
 func (c *component) Error(errorValue int, rerr respErr) bool {
-	c.errors[errorValue] = rerr
-	return true
+	if !present(c.errors[errorValue]) {
+		c.errors[errorValue] = rerr
+		return true
+	}
+	log.Print("cannot override error value response")
+	return false
 }
 
-func (c component) Render(w http.ResponseWriter, req *http.Request) {
+func (c component) Render(w http.ResponseWriter, req *http.Request) Result {
 	//check if view assigned
-	switch match(c.view) {
+	switch present(c.view) {
 	default:
 		err := c.view.Render(req.Context(), w)
 		if err == nil {
-			return
+			return Result{}
 		}
 		log.Printf("Render Fail occured on %s: %s", c.name, err)
+
 	case false:
-		unasssignedView(c.name, RenderFail)
+		err := fmt.Sprintf("%s view not assigned", c.name)
+		log.Print(err)
+
 	}
-	c.internalRenderError(0, w, req)
+	return c.internalRenderError(0, w, req)
 }
 
 func (c component) RenderError(errorValue int, w http.ResponseWriter, req *http.Request) {
 	c.internalRenderError(errorValue, w, req)
 }
 
-func (c component) internalRenderError(errorValue int, w http.ResponseWriter, req *http.Request) {
+func (c component) internalRenderError(errorValue int, w http.ResponseWriter, req *http.Request) Result {
 	//check if error assigned
-	switch match(c.view) {
+	switch present(c.view) {
 	default:
 		err := c.errors[errorValue].response.Render(req.Context(), w)
 		if err == nil {
 			log.Printf("error rendered for %s", c.name)
 			http.Error(w, c.errors[errorValue].err, c.errors[errorValue].code)
-			return
+			return Result{}
 		}
 		log.Printf("Error Fail occured on %s: %s", c.name, err)
 		if errorValue == 0 {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	case false:
-		unasssignedView(c.name, ErrorFail)
+		err := fmt.Sprintf("%s 404 not assigned", c.name)
+		log.Print(err)
 	}
+
 	// if not default error, then display default
 	if errorValue != 0 {
 		c.internalRenderError(0, w, req)
 	}
-}
-
-func unasssignedView(componentName string, ty responseErr) {
-	err := fmt.Sprintf("%s %s not assigned", componentName, ty.View())
-	log.Print(err)
+	return Result{}
 }
