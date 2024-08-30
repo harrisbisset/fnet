@@ -4,17 +4,17 @@
 ```go
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
+	Error(0, fnet.NewError("build error", view_error.DefaultBuildError()).Build()).
 	Build()
 
-func Handler(w http.ResponseWriter, req *http.Request) {
-  	IndexPage.Render(w, req)
+func Handler(w http.ResponseWriter, req *http.Request) fnet.Handler {
+  	return IndexPage.Render(w, req)
 }
 
 func main() {
   	fnet.HandleComponent(fnet.GET, "/", Handler)
 
-  	fnet.Start("3000", "0.0.0.0", http.New)
+  	fnet.Start("80", "0.0.0.0", nil)
 }
 
 ```
@@ -29,7 +29,7 @@ type indexWrapper struct {
 
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
+	Error(0, fnet.NewError("build error", view_error.DefaultBuildError()).Build()).
 	Build()
 
 var IndexWrapper indexWrapper = industryWrapper{
@@ -41,39 +41,35 @@ func (i *indexWrapper) DB(d database.DB) *industryWrapper {
 	return i
 }
 
-func (i *indexWrapper) Handle(w http.ResponseWriter, req *http.Request) {
-	...
-	Database functions here
-	...
-	i.Component.Render(w, req)
+func (i *indexWrapper) Handle(w http.ResponseWriter, req *http.Request) fnet.Handler {
+	...	Database functions here ...
+	return i.Component.Render(w, req)
 }
 
 func main() {
 	db = ...
 	fnet.HandleComponent(fnet.GET, "/", IndexWrapper.DB(db).Handle)
-	fnet.Start("3000", "0.0.0.0")
+	fnet.Start("80", "0.0.0.0", nil)
 }
 ```
 
 ## How to treat render errors
 ```go
-type indexWrapper struct {
-	fnet.Component
-	db database.DB
-}
-
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
-	Error(0, fnet.RespError("build error", view_error.DefaultBuildError())).
-	Error(1, fnet.RespError("wrong user input", view_error.IndexUserError())).
+	Error(0, fnet.NewError("build error", view_error.DefaultBuildError()).Build()).
+	Error(1, fnet.NewError("wrong user input", view_error.IndexUserError()).Build()).
 	Build()
 
 func Handler(w http.ResponseWriter, req *http.Request) {
 	if ... {
-		IndexPage.RenderError(0, w, req)
-		return
+		return IndexPage.RenderError(0, w, req)
 	}
 
-	IndexPage.Render(w, req)
+	if ... {
+		return IndexPage.RenderError(1, w, req)
+	}
+
+	return IndexPage.Render(w, req)
 }
 ```
