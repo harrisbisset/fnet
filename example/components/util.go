@@ -16,5 +16,5 @@ func (d DumbResponse) Render(ctx context.Context, w io.Writer) error {
 
 var (
 	dumbResponse = DumbResponse{}
-	buildError   = fnet.NewError("build error", dumbResponse).Error("error at build time").Build()
+	buildError   = fnet.NewError("build error", dumbResponse).Build()
 )

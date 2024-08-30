@@ -9,10 +9,9 @@ type (
 	ComponentBuilder component
 
 	respErr struct {
-		name     string
+		err      string
 		response Response
 		code     int
-		err      string
 	}
 
 	respErrBuilder respErr
@@ -43,8 +42,8 @@ func (cb *ComponentBuilder) Build() component {
 	return component(*cb)
 }
 
-func NewError(name string, resp Response) *respErrBuilder {
-	return &respErrBuilder{name: name, response: resp}
+func NewError(err string, resp Response) *respErrBuilder {
+	return &respErrBuilder{err: err, response: resp}
 }
 
 func (r *respErrBuilder) Code(code int) *respErrBuilder {
@@ -58,7 +57,6 @@ func (r *respErrBuilder) Error(err string) *respErrBuilder {
 }
 
 func (r *respErrBuilder) Build() respErr {
-	panicField(r.name)
 	panicField(r.err)
 	panicField(r.response)
 
