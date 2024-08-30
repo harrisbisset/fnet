@@ -66,7 +66,7 @@ func (c component) RenderError(errorValue int, w http.ResponseWriter, req *http.
 
 func (c component) internalRenderError(errorValue int, w http.ResponseWriter, req *http.Request) Result {
 	//check if error assigned
-	switch present(c.view) {
+	switch present(c.errors[errorValue].response) {
 	default:
 		err := c.errors[errorValue].response.Render(req.Context(), w)
 		if err == nil {
