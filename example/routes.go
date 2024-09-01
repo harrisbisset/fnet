@@ -1,10 +1,11 @@
 package example
 
 import (
-	"github.com/harrisbisset/fnet"
+	"github.com/gofiber/fiber/v2"
 	"github.com/harrisbisset/fnet/example/components"
 )
 
-func (c cfg) CreateRoutes() {
-	fnet.HandleComponent(fnet.GET, "/", components.IndexPageShow)
+func (c cfg) CreateRoutes(app *fiber.App) {
+
+	app.Get("/", components.IndexPageShow)
 }

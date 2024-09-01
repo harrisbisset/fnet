@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type (
@@ -42,13 +43,13 @@ func (c *component) Error(errorValue int, rerr respErr) bool {
 	return false
 }
 
-func (c component) Render(w http.ResponseWriter, req *http.Request) Result {
+func (c component) Render(ctx *fiber.Ctx) error {
 	//check if view assigned
 	switch present(c.view) {
 	default:
-		err := c.view.Render(req.Context(), w)
+		err := c.view.Render(ctx.Context(), ctx.Response().BodyWriter())
 		if err == nil {
-			return Result{}
+			return nil
 		}
 		log.Printf("Render Fail occured on %s: %s", c.name, err)
 
@@ -57,35 +58,33 @@ func (c component) Render(w http.ResponseWriter, req *http.Request) Result {
 		log.Print(err)
 
 	}
-	return c.internalRenderError(0, w, req)
+	return c.internalRenderError(0, ctx)
 }
 
-func (c component) RenderError(errorValue int, w http.ResponseWriter, req *http.Request) {
-	c.internalRenderError(errorValue, w, req)
+func (c component) RenderError(errorValue int, ctx *fiber.Ctx) error {
+	return c.internalRenderError(errorValue, ctx)
 }
 
-func (c component) internalRenderError(errorValue int, w http.ResponseWriter, req *http.Request) Result {
+func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
+	var err error
+
 	//check if error assigned
 	switch present(c.errors[errorValue].response) {
 	default:
-		err := c.errors[errorValue].response.Render(req.Context(), w)
+		err = c.errors[errorValue].response.Render(ctx.Context(), ctx.Response().BodyWriter())
 		if err == nil {
 			log.Printf("error rendered for %s", c.name)
-			http.Error(w, c.errors[errorValue].err, c.errors[errorValue].code)
-			return Result{}
+			return nil
 		}
 		log.Printf("Error Fail occured on %s: %s", c.name, err)
-		if errorValue == 0 {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
 	case false:
-		err := fmt.Sprintf("%s 404 not assigned", c.name)
+		err = fmt.Errorf("%s 404 not assigned", c.name)
 		log.Print(err)
 	}
 
 	// if not default error, then display default
 	if errorValue != 0 {
-		c.internalRenderError(0, w, req)
+		return c.internalRenderError(0, ctx)
 	}
-	return Result{}
+	return err
 }

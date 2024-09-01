@@ -1,14 +1,13 @@
 package example
 
 import (
-	"github.com/harrisbisset/fnet"
+	"github.com/gofiber/fiber/v2"
 )
 
 func StartSite() {
-	cidr := "0.0.0.0"
-	addr := "80"
-
+	app := fiber.New()
 	config := NewConfig()
-	config.CreateRoutes()
-	fnet.Start(addr, cidr, nil)
+	config.CreateRoutes(app)
+
+	app.Listen(":80")
 }
