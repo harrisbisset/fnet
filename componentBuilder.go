@@ -51,11 +51,6 @@ func (r *respErrBuilder) Code(code int) *respErrBuilder {
 	return r
 }
 
-func (r *respErrBuilder) Error(err string) *respErrBuilder {
-	r.err = err
-	return r
-}
-
 func (r *respErrBuilder) Build() respErr {
 	panicField(r.err)
 	panicField(r.response)

@@ -22,11 +22,7 @@ type (
 		view   Response
 		errors responseErrors
 	}
-
-	WrappedComponent component
 )
-
-type Result struct{}
 
 func (c *component) View(v Response) bool {
 	if present(v) {
