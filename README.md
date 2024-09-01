@@ -1,4 +1,4 @@
-# Custom Library for using Templ
+# Custom Library when using Templ
 
 ## Basic
 ```go
@@ -53,7 +53,7 @@ func main() {
 }
 ```
 
-## How to treat render errors
+## How to Render Errors
 ```go
 var IndexPage = fnet.NewComponent("Index").
 	View(view_index.Show()).
