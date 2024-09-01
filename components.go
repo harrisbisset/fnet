@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"log"
+	"runtime/debug"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -56,6 +57,7 @@ func (c component) internalRender(ctx *fiber.Ctx) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Render Fail occured on %s", c.name)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 		}
 	}()
 
@@ -82,6 +84,7 @@ func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Error Fail occured on %s", c.name)
+			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
 		}
 	}()
 
