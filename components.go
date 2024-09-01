@@ -2,7 +2,7 @@ package fnet
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"io"
 	"log"
 
@@ -44,47 +44,59 @@ func (c *component) Error(errorValue int, rerr respErr) bool {
 }
 
 func (c component) Render(ctx *fiber.Ctx) error {
+	err := c.internalRender(ctx)
+	if err == nil {
+		return c.RenderError(0, ctx)
+	}
+	return err
+
+}
+
+func (c component) internalRender(ctx *fiber.Ctx) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Render Fail occured on %s", c.name)
+		}
+	}()
+
 	//check if view assigned
 	switch present(c.view) {
 	default:
-		err := c.view.Render(ctx.Context(), ctx.Response().BodyWriter())
-		if err == nil {
-			return nil
-		}
-		log.Printf("Render Fail occured on %s: %s", c.name, err)
-
+		return c.view.Render(ctx.Context(), ctx.Response().BodyWriter())
 	case false:
-		err := fmt.Sprintf("%s view not assigned", c.name)
-		log.Print(err)
-
+		log.Printf("%s view not assigned", c.name)
+		return c.RenderError(0, ctx)
 	}
-	return c.internalRenderError(0, ctx)
 }
 
 func (c component) RenderError(errorValue int, ctx *fiber.Ctx) error {
-	return c.internalRenderError(errorValue, ctx)
+	err := c.internalRenderError(errorValue, ctx)
+	if err == nil {
+		return errors.New("request failed")
+	}
+	return err
 }
 
 func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
-	var err error
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Error Fail occured on %s", c.name)
+		}
+	}()
 
 	//check if error assigned
 	switch present(c.errors[errorValue].response) {
 	default:
-		err = c.errors[errorValue].response.Render(ctx.Context(), ctx.Response().BodyWriter())
-		if err == nil {
-			log.Printf("error rendered for %s", c.name)
-			return nil
-		}
-		log.Printf("Error Fail occured on %s: %s", c.name, err)
+		return c.errors[errorValue].response.Render(ctx.Context(), ctx.Response().BodyWriter())
 	case false:
-		err = fmt.Errorf("%s 404 not assigned", c.name)
-		log.Print(err)
+		log.Printf("%s 404 not assigned for %d", c.name, errorValue)
 	}
 
 	// if not default error, then display default
 	if errorValue != 0 {
 		return c.internalRenderError(0, ctx)
 	}
-	return err
+
+	return errors.New("request failed")
 }
