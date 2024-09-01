@@ -6,7 +6,7 @@ import (
 )
 
 var IndexPage = fnet.NewComponent("Index Page").
-	View(dumbResponse).
+	View(badResponse).
 	Error(0, buildError).
 	Build()
 

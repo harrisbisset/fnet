@@ -22,6 +22,8 @@ type (
 		view   Response
 		errors responseErrors
 	}
+
+	WrappedComponent component
 )
 
 type Result struct{}
