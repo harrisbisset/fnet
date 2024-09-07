@@ -24,7 +24,7 @@ type (
 	}
 )
 
-func (c *component) View(v Response) bool {
+func (c *component) SetView(v Response) bool {
 	if present(v) {
 		c.view = v
 		return true
@@ -33,13 +33,21 @@ func (c *component) View(v Response) bool {
 	return false
 }
 
-func (c *component) Error(errorValue int, rerr respErr) bool {
+func (c component) View() Response {
+	return c.view
+}
+
+func (c *component) SetError(errorValue int, rerr respErr) bool {
 	if !present(c.errors[errorValue]) {
 		c.errors[errorValue] = rerr
 		return true
 	}
 	log.Print("cannot override error value response")
 	return false
+}
+
+func (c component) ErrorResponse(id int) Response {
+	return c.errors[id].response
 }
 
 func (c component) Render(ctx *fiber.Ctx) error {
