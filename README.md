@@ -1,5 +1,8 @@
 # Custom Library when using Templ
 
+
+## MD is OUTDATED
+
 ## Basic
 ```go
 var IndexPage = fnet.NewComponent("Index").
