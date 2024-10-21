@@ -27,5 +27,5 @@ func (w *WrappedDBPageStruct) DBPageShow(ctx *fiber.Ctx) error {
 	ctx.Locals("data-base-result", w.DB)
 	ctx.Next()
 
-	return DBPage.Render(ctx)
+	return DBPage.RenderView(ctx)
 }

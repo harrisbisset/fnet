@@ -1,12 +1,33 @@
 package fnet
 
+import (
+	"context"
+	"errors"
+	"io"
+	"net/http"
+)
+
 //
 // internal types below
 //
 
 type (
 	responseErr int
+
+	none              struct{}
+	optType           interface{ any | none }
+	Option[T optType] struct{ Result T }
+
+	internalbuildError struct{}
 )
+
+func Opt[T optType](o Option[T]) optType {
+	return *new(T)
+}
+
+func None() none {
+	return *new(none)
+}
 
 const (
 	RenderFail responseErr = iota
@@ -26,3 +47,13 @@ func panicField[T comparable](field T) {
 		panic("field required")
 	}
 }
+
+//
+// internal vars
+//
+
+func (b internalbuildError) Render(ctx context.Context, w io.Writer) error {
+	return errors.New("<div style='margin:auto;'>404 - Page not Found</div>")
+}
+
+var buildError = NewError("build error", internalbuildError{}).Code(http.StatusInternalServerError).Build()

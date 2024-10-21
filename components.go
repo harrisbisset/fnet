@@ -2,7 +2,6 @@ package fnet
 
 import (
 	"context"
-	"errors"
 	"io"
 	"log"
 	"runtime/debug"
@@ -50,16 +49,20 @@ func (c component) ErrorResponse(id int) Response {
 	return c.errors[id].response
 }
 
-func (c component) Render(ctx *fiber.Ctx) error {
-	err := c.internalRender(ctx)
-	if err == nil {
-		return c.RenderError(0, ctx)
-	}
-	return err
+func (c component) RenderView(ctx *fiber.Ctx) error {
+	opt := c.internalRender(ctx)
 
+	switch Opt(opt) {
+	case None():
+		return c.RenderError(0, ctx)
+	default:
+		return opt.Result
+	}
 }
 
-func (c component) internalRender(ctx *fiber.Ctx) error {
+func (c component) internalRender(ctx *fiber.Ctx) Option[error] {
+
+	// recover from error in component
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Render Fail occured on %s", c.name)
@@ -70,23 +73,31 @@ func (c component) internalRender(ctx *fiber.Ctx) error {
 	//check if view assigned
 	switch present(c.view) {
 	default:
-		return c.view.Render(ctx.Context(), ctx.Response().BodyWriter())
+		return Option[error]{
+			renderHandler(c.view, ctx),
+		}
 	case false:
 		log.Printf("%s view not assigned", c.name)
-		return c.RenderError(0, ctx)
+		return Option[error]{
+			c.RenderError(0, ctx),
+		}
 	}
 }
 
 func (c component) RenderError(errorValue int, ctx *fiber.Ctx) error {
-	err := c.internalRenderError(errorValue, ctx)
-	if err == nil {
-		return errors.New("request failed")
+	opt := c.internalRenderError(errorValue, ctx)
+
+	switch Opt(opt) {
+	case None():
+		return renderHandler(buildError.response, ctx)
+	default:
+		return opt.Result
 	}
-	return err
 }
 
-func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
+func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) Option[error] {
 
+	// recover from error in component
 	defer func() {
 		if r := recover(); r != nil {
 			log.Printf("Error Fail occured on %s", c.name)
@@ -97,9 +108,11 @@ func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
 	//check if error assigned
 	switch present(c.errors[errorValue].response) {
 	default:
-		return c.errors[errorValue].response.Render(ctx.Context(), ctx.Response().BodyWriter())
+		return Option[error]{
+			renderHandler(c.errors[errorValue].response, ctx),
+		}
 	case false:
-		log.Printf("%s 404 not assigned for %d", c.name, errorValue)
+		log.Printf("%s 404 not assigned for error value %d", c.name, errorValue)
 	}
 
 	// if not default error, then display default
@@ -107,5 +120,7 @@ func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
 		return c.internalRenderError(0, ctx)
 	}
 
-	return errors.New("request failed")
+	return Option[error]{
+		renderHandler(buildError.response, ctx),
+	}
 }

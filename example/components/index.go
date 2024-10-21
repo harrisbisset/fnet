@@ -17,5 +17,5 @@ func IndexPageShow(ctx *fiber.Ctx) error {
 	str := tStruct{}
 
 	ctx.Set("strpointer", str.S)
-	return IndexPage.Render(ctx)
+	return IndexPage.RenderView(ctx)
 }
