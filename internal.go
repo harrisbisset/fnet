@@ -14,7 +14,7 @@ import (
 type (
 	responseErr int
 
-	none              struct{}
+	none              int
 	optType           interface{ any | none }
 	Option[T optType] struct{ Result T }
 
