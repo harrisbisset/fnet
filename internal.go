@@ -14,20 +14,8 @@ import (
 type (
 	responseErr int
 
-	none              int
-	optType           interface{ any | none }
-	Option[T optType] struct{ Result T }
-
 	internalbuildError struct{}
 )
-
-func Opt[T optType](o Option[T]) optType {
-	return *new(T)
-}
-
-func None() none {
-	return *new(none)
-}
 
 const (
 	RenderFail responseErr = iota
