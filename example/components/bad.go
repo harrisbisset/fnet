@@ -12,11 +12,5 @@ var BadPage = fnet.NewComponent("Bad Page").
 	Build()
 
 func BadPageShow(ctx *fiber.Ctx) error {
-	type tStruct struct {
-		S string
-	}
-	str := tStruct{}
-
-	ctx.Set("strpointer", str.S)
 	return BadPage.RenderView(ctx)
 }

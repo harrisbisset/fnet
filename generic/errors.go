@@ -1,8 +1,8 @@
 package generic
 
 import (
+	"bytes"
 	"context"
-	"errors"
 	"io"
 	"net/http"
 
@@ -20,9 +20,21 @@ var (
 )
 
 func (d DefaultError) Render(ctx context.Context, w io.Writer) error {
-	return errors.New("<div style='margin:auto;'>404 - Not Found, default error</div>")
+	buf, isBuf := w.(*bytes.Buffer)
+	if !isBuf {
+		buf = fnet.GetBuffer()
+		defer fnet.ReleaseBuffer(buf)
+	}
+	_, err := buf.WriteString("<div style='margin:auto;'>404 - Not Found, default error</div>")
+	return err
 }
 
 func (b BuildError) Render(ctx context.Context, w io.Writer) error {
-	return errors.New("<div style='margin:auto;'>404 - Not Found, error occured at build time</div>")
+	buf, isBuf := w.(*bytes.Buffer)
+	if !isBuf {
+		buf = fnet.GetBuffer()
+		defer fnet.ReleaseBuffer(buf)
+	}
+	_, err := buf.WriteString("<div style='margin:auto;'>404 - Not Found, error occured at build time</div>")
+	return err
 }

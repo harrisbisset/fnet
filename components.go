@@ -50,17 +50,17 @@ func (c component) ErrorResponse(id int) Response {
 }
 
 func (c component) RenderView(ctx *fiber.Ctx) error {
-	switch res := c.internalRender(ctx); res {
-	case nil:
-		log.Println("failed render")
+	opt := c.internalRender(ctx)
+
+	switch Opt(opt) {
+	case None():
 		return c.RenderError(0, ctx)
 	default:
-		log.Println("render worked")
-		return res
+		return opt.Result
 	}
 }
 
-func (c component) internalRender(ctx *fiber.Ctx) error {
+func (c component) internalRender(ctx *fiber.Ctx) Option[error] {
 
 	// recover from error in component
 	defer func() {
@@ -72,26 +72,30 @@ func (c component) internalRender(ctx *fiber.Ctx) error {
 
 	//check if view assigned
 	switch present(c.view) {
+	default:
+		return Option[error]{
+			renderHandler(c.view, ctx),
+		}
 	case false:
 		log.Printf("%s view not assigned", c.name)
-		return c.RenderError(0, ctx)
-	default:
-		return renderHandler(c.view, ctx)
+		return Option[error]{
+			c.RenderError(0, ctx),
+		}
 	}
 }
 
 func (c component) RenderError(errorValue int, ctx *fiber.Ctx) error {
-	switch res := c.internalRenderError(errorValue, ctx); res {
-	case nil:
-		log.Println("failed error render")
+	opt := c.internalRenderError(errorValue, ctx)
+
+	switch Opt(opt) {
+	case None():
 		return renderHandler(buildError.response, ctx)
 	default:
-		log.Println("error render worked")
-		return res
+		return opt.Result
 	}
 }
 
-func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
+func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) Option[error] {
 
 	// recover from error in component
 	defer func() {
@@ -104,7 +108,9 @@ func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
 	//check if error assigned
 	switch present(c.errors[errorValue].response) {
 	default:
-		return renderHandler(c.errors[errorValue].response, ctx)
+		return Option[error]{
+			renderHandler(c.errors[errorValue].response, ctx),
+		}
 	case false:
 		log.Printf("%s 404 not assigned for error value %d", c.name, errorValue)
 	}
@@ -114,5 +120,7 @@ func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) error {
 		return c.internalRenderError(0, ctx)
 	}
 
-	return renderHandler(buildError.response, ctx)
+	return Option[error]{
+		renderHandler(buildError.response, ctx),
+	}
 }
