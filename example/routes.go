@@ -6,7 +6,7 @@ import (
 )
 
 func (c cfg) CreateRoutes(app *fiber.App) {
-
-	// app.Get("/index", components.IndexPageShow)
-	app.Get("/db", components.WrappedDBPage.AddDBConn("res").DBPageShow)
+	app.Get("/dumb", components.DumbPageShow) // should work
+	app.Get("/bad", components.BadPageShow)   // should fail gracefully
+	app.Get("/db", components.DBPageWrapper.AddDBConn("res").Handler)
 }

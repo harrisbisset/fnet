@@ -3,25 +3,26 @@ package components
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/harrisbisset/fnet"
+	"github.com/harrisbisset/fnet/generic"
 )
 
 var DBPage = fnet.NewComponent("DB Page").
 	View(dbResponse).
-	Error(0, buildError).
+	Error(0, generic.GenericBuildError).
 	Build()
 
-type WrappedDBPageStruct struct {
+type DBPageWrapperStruct struct {
 	DB string
 }
 
-var WrappedDBPage WrappedDBPageStruct
+var DBPageWrapper DBPageWrapperStruct
 
-func (w *WrappedDBPageStruct) AddDBConn(s string) *WrappedDBPageStruct {
+func (w *DBPageWrapperStruct) AddDBConn(s string) *DBPageWrapperStruct {
 	w.DB = s
 	return w
 }
 
-func (w *WrappedDBPageStruct) DBPageShow(ctx *fiber.Ctx) error {
+func (w *DBPageWrapperStruct) Handler(ctx *fiber.Ctx) error {
 
 	// example
 	ctx.Locals("data-base-result", w.DB)

@@ -20,9 +20,9 @@ var (
 )
 
 func (d DefaultError) Render(ctx context.Context, w io.Writer) error {
-	return errors.New("<div style='margin:auto;'>404 - Page not Found</div>")
+	return errors.New("<div style='margin:auto;'>404 - Not Found, default error</div>")
 }
 
 func (b BuildError) Render(ctx context.Context, w io.Writer) error {
-	return errors.New("<div style='margin:auto;'>404 - Page not Found</div>")
+	return errors.New("<div style='margin:auto;'>404 - Not Found, error occured at build time</div>")
 }

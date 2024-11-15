@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
@@ -45,11 +46,11 @@ var bufferPool = sync.Pool{
 	},
 }
 
-const componentHandlerErrorMessage = "failed to render template"
+const componentHandlerErrorMessage = "fnet: failed to render template"
 
 func renderHandler(resp Response, c *fiber.Ctx) error {
-	handler := adaptor.HTTPHandler(&ComponentHandler{
-		Response:    resp,
+	handler := adaptor.HTTPHandler(&templ.ComponentHandler{
+		Component:   resp,
 		ContentType: "text/html; charset=utf-8",
 	})
 	return handler(c)

@@ -2,7 +2,10 @@ module github.com/harrisbisset/fnet
 
 go 1.22.0
 
-require github.com/gofiber/fiber/v2 v2.52.5
+require (
+	github.com/a-h/templ v0.2.778
+	github.com/gofiber/fiber/v2 v2.52.5
+)
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
