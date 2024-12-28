@@ -1,126 +1,59 @@
 package fnet
 
 import (
-	"context"
-	"io"
-	"log"
-	"runtime/debug"
+	"net/http"
 
-	"github.com/gofiber/fiber/v2"
+	fnettempl "github.com/harrisbisset/fnet/fnet-templ"
 )
 
 type (
-	Response interface {
-		Render(ctx context.Context, w io.Writer) error
+	Component struct {
+		ContentType string
+		Response    func(w http.ResponseWriter, r *http.Request)
+
+		Handler *fnettempl.ComponentHandler
 	}
 
-	responseErrors map[int]respErr
-
-	component struct {
-		name   string
-		view   Response
-		errors responseErrors
-	}
+	ComponentOption func(*Component)
 )
 
-func (c *component) SetView(v Response) bool {
-	if present(v) {
-		c.view = v
-		return true
+func (c Component) Render(w http.ResponseWriter, r *http.Request) {
+	if c.Handler == nil {
+		c.Handler.ServeHTTP(w, r)
+		return
 	}
-	log.Print("view cannot be set to a nil value")
-	return false
+
+	if c.
+
+	c.Response(w, r)
 }
 
-func (c component) View() Response {
-	return c.view
-}
-
-func (c *component) SetError(errorValue int, rerr respErr) bool {
-	if !present(c.errors[errorValue]) {
-		c.errors[errorValue] = rerr
-		return true
+func NewComponent(opts ...ComponentOption) Component {
+	c := &Component{
+		ContentType: "text/html; charset=utf-8",
 	}
-	log.Print("cannot override error value response")
-	return false
+
+	for _, o := range opts {
+		o(c)
+	}
+
+	return *c
 }
 
-func (c component) ErrorResponse(id int) Response {
-	return c.errors[id].response
-}
-
-func (c component) RenderView(ctx *fiber.Ctx) error {
-	opt := c.internalRender(ctx)
-
-	switch Opt(opt) {
-	case None():
-		return c.RenderError(0, ctx)
-	default:
-		return opt.Result
+func WithContentType(t string) ComponentOption {
+	return func(c *Component) {
+		c.ContentType = t
 	}
 }
 
-func (c component) internalRender(ctx *fiber.Ctx) Option[error] {
-
-	// recover from error in component
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("Render Fail occured on %s", c.name)
-			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
-		}
-	}()
-
-	//check if view assigned
-	switch present(c.view) {
-	default:
-		return Option[error]{
-			renderHandler(c.view, ctx),
-		}
-	case false:
-		log.Printf("%s view not assigned", c.name)
-		return Option[error]{
-			c.RenderError(0, ctx),
-		}
+func WithTempl(v fnettempl.Component, opts ...func(*fnettempl.ComponentHandler)) ComponentOption {
+	return func(c *Component) {
+		c.Handler = fnettempl.Handler(v)
 	}
 }
 
-func (c component) RenderError(errorValue int, ctx *fiber.Ctx) error {
-	opt := c.internalRenderError(errorValue, ctx)
+func WithRender(fn func(w http.ResponseWriter, r *http.Request)) ComponentOption {
+	return func(c *Component) {
 
-	switch Opt(opt) {
-	case None():
-		return renderHandler(buildError.response, ctx)
-	default:
-		return opt.Result
-	}
-}
-
-func (c component) internalRenderError(errorValue int, ctx *fiber.Ctx) Option[error] {
-
-	// recover from error in component
-	defer func() {
-		if r := recover(); r != nil {
-			log.Printf("Error Fail occured on %s", c.name)
-			log.Println("stacktrace from panic: \n" + string(debug.Stack()))
-		}
-	}()
-
-	//check if error assigned
-	switch present(c.errors[errorValue].response) {
-	default:
-		return Option[error]{
-			renderHandler(c.errors[errorValue].response, ctx),
-		}
-	case false:
-		log.Printf("%s 404 not assigned for error value %d", c.name, errorValue)
-	}
-
-	// if not default error, then display default
-	if errorValue != 0 {
-		return c.internalRenderError(0, ctx)
-	}
-
-	return Option[error]{
-		renderHandler(buildError.response, ctx),
 	}
 }
