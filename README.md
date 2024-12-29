@@ -5,7 +5,7 @@
 var IndexPage = fnet.NewComponent(fnet.WithTempl(view_index.Show()))
 
 func main() {
-  	http.HandleFunc(fnet.GET, "/", IndexPage.Render)
+  	http.HandleFunc("/", IndexPage.Render)
 
   	http.ListenAndServe("8080", nil)
 }
