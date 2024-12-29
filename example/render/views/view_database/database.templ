@@ -1,0 +1,18 @@
+package view_database
+
+import "github.com/harrisbisset/fnet/example/models"
+import "github.com/harrisbisset/fnet/example/render/views/view_layout"
+
+
+templ Hello(record models.DatabaseRecord) {
+    @view_layout.Meta() {
+        <div>Hello From DB</div>
+        <div>{ record.Name }</div>
+    }
+}
+
+templ Show() {
+    @view_layout.Meta() {
+        <div>Hello From DB</div>
+    }
+}

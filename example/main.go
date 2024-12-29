@@ -1,17 +1,21 @@
 package main
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"log"
+	"net/http"
+
 	"github.com/harrisbisset/fnet/example/components"
+	"github.com/harrisbisset/fnet/example/models"
 )
 
 func main() {
-	app := fiber.New()
+	db := models.DatabaseRecord{
+		Name: "Database Record Name",
+	}
 
-	app.Get("/dumb", components.DumbPageShow) // should work
-	app.Get("/bad", components.BadPageShow)   // should fail gracefully
-	app.Get("/db", components.DBPageWrapper.AddDBConn("res").Handler)
+	http.HandleFunc("/", components.IndexPage.Render)
+	http.HandleFunc("/db", components.DatabasePage.RenderWithData(db))
 
-	app.Listen(":80")
-
+	log.Print("listening")
+	http.ListenAndServe(":8080", nil)
 }

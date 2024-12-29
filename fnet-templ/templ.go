@@ -1,3 +1,13 @@
+package fnet
+
+import (
+	"bytes"
+	"context"
+	"io"
+	"net/http"
+	"sync"
+)
+
 // MIT License
 
 // Copyright (c) 2021 Adrian Hesketh
@@ -20,45 +30,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-package fnet
-
-import (
-	"bytes"
-	"net/http"
-	"sync"
-)
-
 var bufferPool = sync.Pool{
 	New: func() any {
 		return new(bytes.Buffer)
 	},
 }
 
+func getBuffer() *bytes.Buffer {
+	return bufferPool.Get().(*bytes.Buffer)
+}
+
+func releaseBuffer(b *bytes.Buffer) {
+	b.Reset()
+	bufferPool.Put(b)
+}
+
+type Component interface {
+	Render(c context.Context, w io.Writer) error
+}
+
 // ComponentHandler is a http.Handler that renders components.
 type ComponentHandler struct {
-	Component      Response
+	Component      Component
 	Status         int
 	ContentType    string
 	ErrorHandler   func(r *http.Request, err error) http.Handler
 	StreamResponse bool
 }
 
-const componentHandlerErrorMessage = "fnet: failed to render template"
-
-func ReleaseBuffer(b *bytes.Buffer) {
-	b.Reset()
-	bufferPool.Put(b)
-}
-
-func GetBuffer() *bytes.Buffer {
-	return bufferPool.Get().(*bytes.Buffer)
-}
+const componentHandlerErrorMessage = "templ: failed to render template"
 
 func (ch *ComponentHandler) ServeHTTPBuffered(w http.ResponseWriter, r *http.Request) {
 	// Since the component may error, write to a buffer first.
 	// This prevents partial responses from being written to the client.
-	buf := GetBuffer()
-	defer ReleaseBuffer(buf)
+	buf := getBuffer()
+	defer releaseBuffer(buf)
 	err := ch.Component.Render(r.Context(), buf)
 	if err != nil {
 		if ch.ErrorHandler != nil {
@@ -103,7 +109,7 @@ func (ch ComponentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handler creates a http.Handler that renders the template.
-func Handler(c Response, options ...func(*ComponentHandler)) *ComponentHandler {
+func Handler(c Component, options ...func(*ComponentHandler)) *ComponentHandler {
 	ch := &ComponentHandler{
 		Component:   c,
 		ContentType: "text/html; charset=utf-8",
